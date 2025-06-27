@@ -179,7 +179,6 @@ input:disabled {
 }
 
 .motorcycle-bg::before {
-    content: "🏍️";
     font-size: 40px;
     opacity: 0.1;
     position: absolute;

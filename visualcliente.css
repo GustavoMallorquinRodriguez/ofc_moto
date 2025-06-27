@@ -27,11 +27,16 @@ body {
     border-radius: 15px;
     padding: 15px;
     backdrop-filter: blur(10px);
-
+    
     
 }
 
-
+.logo-ccm img{
+    max-width: 120px;
+    max-height: 80px;
+    object-fit: contain;
+   border-radius: 50%;
+}
     
 
 .logo img {

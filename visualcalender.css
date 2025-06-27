@@ -35,27 +35,26 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    box-shadow: var(--shadow);
-    position: sticky;
-    top: 0;
-    z-index: 100;
+   
+}
+.logo-ccm img{
+    display: flex;
+    align-items: center;
+    max-width: 120px;
+    max-height: 110px;
+    border-radius: 50%;
 }
 
 .logo-container {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+
 }
 
 .logo-container img {
     max-width: 120px;
     max-height: 110px;
-    object-fit: contain;
-    transition: transform 0.3s ease;
-}
-
-.logo-container img:hover {
-    transform: scale(1.05);
+ 
 }
 
 .center-logo img {

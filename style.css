@@ -91,12 +91,9 @@ header div img{
 }
 
 .an{
-    margin-left: 900px;
+    margin-left: 700px;
     margin-top: 20px;
     width: 140px;
-    position: fixed;
-    background-color: white;
-    border-radius: 5px;
 
 }
 
@@ -104,6 +101,7 @@ header div img{
     margin-left: 100px;
     position: fixed;
     margin-top: 3px;
+    border-radius: 50%;
 }
 .main-content {
             margin-left: 60px;
@@ -123,7 +121,7 @@ header div img{
         }
 
         .form-container {
-            background: rgba(100, 100, 100, 0.9);
+            background: #a8b2b8;
             padding: 40px;
             border-radius: 15px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.2);

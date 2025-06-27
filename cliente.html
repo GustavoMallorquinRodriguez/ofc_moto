@@ -46,19 +46,15 @@
                         <input type="text" id="cep" placeholder="CEP" required>
                     </div>
                     <div class="form-group quarter">
+                        <input type="text" id="cidade" placeholder="Cidade">
+                    </div>
+                    <div class="form-group quarter">
                         <input type="text" id="bairro" placeholder="Bairro" required>
                     </div>
                     <div class="form-group quarter">
                         <input type="text" id="complemento" placeholder="Complemento">
                     </div>
-                    <div class="form-group quarter">
-                        <select id="sexo" required>
-                            <option value="">Sexo</option>
-                            <option value="masculino">Masculino</option>
-                            <option value="feminino">Feminino</option>
-                            <option value="outro">Outro</option>
-                        </select>
-                    </div>
+                    
                 </div>
 
                 <div class="form-row">
@@ -79,96 +75,8 @@
     </div>
 
     <script>
-        // Função para gerar próximo ID
-        function getNextId() {
-            const clientes = JSON.parse(localStorage.getItem('clientes') || '[]');
-            if (clientes.length === 0) return '001';
-            
-            const lastId = Math.max(...clientes.map(c => parseInt(c.id)));
-            return String(lastId + 1).padStart(3, '0');
-        }
-
-        // Função para salvar cliente
-        function salvarCliente(clienteData) {
-            const clientes = JSON.parse(localStorage.getItem('clientes') || '[]');
-            clientes.push(clienteData);
-            localStorage.setItem('clientes', JSON.stringify(clientes));
-        }
-
-        document.getElementById('clienteForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            // Coletar dados do formulário
-            const clienteData = {
-                id: getNextId(),
-                nome: document.getElementById('nomeCliente').value,
-                telefone: document.getElementById('telefone').value,
-                cpf: document.getElementById('cpf').value,
-                cep: document.getElementById('cep').value,
-                bairro: document.getElementById('bairro').value,
-                complemento: document.getElementById('complemento').value,
-                sexo: document.getElementById('sexo').value,
-                rua: document.getElementById('nomeRua').value,
-                numero: document.getElementById('numeroCasa').value,
-                email: document.getElementById('email').value
-            };
-            
-            // Animação de sucesso
-            const btn = document.querySelector('.submit-btn');
-            const originalText = btn.textContent;
-            
-            btn.textContent = 'Cadastrando...';
-            btn.style.backgroundColor = '#28a745';
-            btn.disabled = true;
-            
-            setTimeout(() => {
-                // Salvar cliente
-                salvarCliente(clienteData);
-                
-                btn.textContent = 'Cliente Cadastrado!';
-                setTimeout(() => {
-                    btn.textContent = originalText;
-                    btn.style.backgroundColor = '';
-                    btn.disabled = false;
-                    this.reset();
-                    
-                    // Mostrar mensagem de sucesso
-                    showMessage('Cliente cadastrado com sucesso!', 'success');
-                }, 2000);
-            }, 1000);
-        });
-
-        // Função para mostrar mensagens
-        function showMessage(message, type) {
-            const messageDiv = document.createElement('div');
-            messageDiv.textContent = message;
-            messageDiv.style.cssText = `
-                position: fixed;
-                top: 20px;
-                right: 20px;
-                padding: 15px 25px;
-                border-radius: 8px;
-                color: white;
-                font-weight: bold;
-                z-index: 10000;
-                animation: slideInRight 0.5s ease;
-                ${type === 'success' ? 'background: linear-gradient(135deg, #27ae60, #2ecc71);' : 'background: linear-gradient(135deg, #e74c3c, #c0392b);'}
-            `;
-            
-            document.body.appendChild(messageDiv);
-            
-            setTimeout(() => {
-                messageDiv.style.animation = 'slideOutRight 0.5s ease';
-                setTimeout(() => {
-                    if (document.body.contains(messageDiv)) {
-                        document.body.removeChild(messageDiv);
-                    }
-                }, 500);
-            }, 3000);
-        }
-
-        // Máscara para CPF
-        document.querySelector('input[placeholder="CPF"]').addEventListener('input', function(e) {
+        // Formatação de CPF
+        document.getElementById('cpf').addEventListener('input', function(e) {
             let value = e.target.value.replace(/\D/g, '');
             value = value.replace(/(\d{3})(\d)/, '$1.$2');
             value = value.replace(/(\d{3})(\d)/, '$1.$2');
@@ -176,93 +84,124 @@
             e.target.value = value;
         });
 
-        // Máscara para telefone
-        document.querySelector('input[placeholder="Telefone"]').addEventListener('input', function(e) {
+        // Formatação de CEP
+        document.getElementById('cep').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            value = value.replace(/(\d{5})(\d)/, '$1-$2');
+            e.target.value = value;
+        });
+
+        // Formatação de telefone
+        document.getElementById('telefone').addEventListener('input', function(e) {
             let value = e.target.value.replace(/\D/g, '');
             value = value.replace(/(\d{2})(\d)/, '($1) $2');
-            value = value.replace(/(\d{5})(\d)/, '$1-$2');
+            value = value.replace(/(\d{4,5})(\d{4})$/, '$1-$2');
             e.target.value = value;
         });
 
-        // Máscara para CEP e integração com ViaCEP
-        const cepInput = document.querySelector('input[placeholder="CEP"]');
-        const bairroInput = document.querySelector('input[placeholder="Bairro"]');
-        const ruaInput = document.querySelector('input[placeholder="Nome da Rua"]');
-        
-        cepInput.addEventListener('input', function(e) {
-            let value = e.target.value.replace(/\D/g, '');
-            value = value.replace(/(\d{5})(\d)/, '$1-$2');
-            e.target.value = value;
+        // Integração com ViaCEP
+        document.getElementById('cep').addEventListener('blur', function() {
+            const cep = this.value.replace(/\D/g, '');
             
-            // Buscar CEP quando tiver 8 dígitos
-            if (value.replace(/\D/g, '').length === 8) {
-                buscarCEP(value.replace(/\D/g, ''));
+            if (cep.length === 8) {
+                // Adiciona classe de loading
+                this.classList.add('loading');
+                
+                // Limpa campos anteriores
+                document.getElementById('nomeRua').value = '';
+                document.getElementById('bairro').value = '';
+                document.getElementById('cidade').value = '';
+                
+                // Faz a requisição para a API ViaCEP
+                fetch(`https://viacep.com.br/ws/${cep}/json/`)
+                    .then(response => response.json())
+                    .then(data => {
+                        // Remove classe de loading
+                        this.classList.remove('loading');
+                        
+                        if (data.erro) {
+                            // CEP não encontrado
+                            this.classList.add('error');
+                            alert('CEP não encontrado!');
+                            
+                            // Habilita campos para preenchimento manual
+                            document.getElementById('nomeRua').removeAttribute('readonly');
+                            document.getElementById('bairro').removeAttribute('readonly');
+                            document.getElementById('cidade').removeAttribute('readonly');
+                        } else {
+                            // CEP encontrado - preenche os campos
+                            this.classList.remove('error');
+                            this.classList.add('success');
+                            
+                            document.getElementById('nomeRua').value = data.logradouro || '';
+                            document.getElementById('bairro').value = data.bairro || '';
+                            document.getElementById('cidade').value = data.localidade || '';
+                            
+                            // Se algum campo estiver vazio, permite edição
+                            if (!data.logradouro) {
+                                document.getElementById('nomeRua').removeAttribute('readonly');
+                                document.getElementById('nomeRua').focus();
+                            }
+                            if (!data.bairro) {
+                                document.getElementById('bairro').removeAttribute('readonly');
+                            }
+                        }
+                    })
+                    .catch(error => {
+                        // Erro na requisição
+                        this.classList.remove('loading');
+                        this.classList.add('error');
+                        console.error('Erro ao buscar CEP:', error);
+                        alert('Erro ao buscar CEP. Verifique sua conexão com a internet.');
+                        
+                        // Habilita campos para preenchimento manual
+                        document.getElementById('nomeRua').removeAttribute('readonly');
+                        document.getElementById('bairro').removeAttribute('readonly');
+                        document.getElementById('cidade').removeAttribute('readonly');
+                    });
+            } else if (cep.length > 0) {
+                // CEP inválido
+                this.classList.add('error');
+                alert('CEP deve ter 8 dígitos!');
             }
         });
-        
-        async function buscarCEP(cep) {
-            try {
-                // Mostrar loading
-                bairroInput.placeholder = 'Buscando...';
-                ruaInput.placeholder = 'Buscando...';
-                bairroInput.disabled = true;
-                ruaInput.disabled = true;
-                
-                const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
-                const data = await response.json();
-                
-                if (data.erro) {
-                    throw new Error('CEP não encontrado');
-                }
-                
-                // Preencher campos automaticamente
-                bairroInput.value = data.bairro || '';
-                ruaInput.value = data.logradouro || '';
-                
-                // Adicionar cidade e estado como dados extras (opcional)
-                if (data.localidade && data.uf) {
-                    // Você pode adicionar campos ocultos ou mostrar em algum lugar
-                    console.log(`Cidade: ${data.localidade} - ${data.uf}`);
-                }
-                
-                // Restaurar placeholders
-                bairroInput.placeholder = 'Bairro';
-                ruaInput.placeholder = 'Nome da Rua';
-                
-            } catch (error) {
-                console.error('Erro ao buscar CEP:', error);
-                
-                // Em caso de erro, limpar campos e mostrar mensagem
-                bairroInput.value = '';
-                ruaInput.value = '';
-                bairroInput.placeholder = 'CEP inválido - Digite manualmente';
-                ruaInput.placeholder = 'CEP inválido - Digite manualmente';
-                
-                // Restaurar placeholders após 3 segundos
-                setTimeout(() => {
-                    bairroInput.placeholder = 'Bairro';
-                    ruaInput.placeholder = 'Nome da Rua';
-                }, 3000);
-            } finally {
-                // Reabilitar campos
-                bairroInput.disabled = false;
-                ruaInput.disabled = false;
-            }
-        }
 
-        // Animações CSS
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes slideInRight {
-                from { transform: translateX(100%); opacity: 0; }
-                to { transform: translateX(0); opacity: 1; }
-            }
-            @keyframes slideOutRight {
-                from { transform: translateX(0); opacity: 1; }
-                to { transform: translateX(100%); opacity: 0; }
-            }
-        `;
-        document.head.appendChild(style);
+        // Limpa classes de status quando o usuário começar a digitar novamente
+        document.getElementById('cep').addEventListener('input', function() {
+            this.classList.remove('loading', 'error', 'success');
+        });
+
+        // Tratamento do envio do formulário
+        document.getElementById('clienteForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Coleta todos os dados do formulário
+            const formData = {
+                nome: document.getElementById('nomeCliente').value,
+                dataNascimento: document.getElementById('dataNascimento').value,
+                telefone: document.getElementById('telefone').value,
+                cpf: document.getElementById('cpf').value,
+                cep: document.getElementById('cep').value,
+                cidade: document.getElementById('cidade').value,
+                bairro: document.getElementById('bairro').value,
+                rua: document.getElementById('nomeRua').value,
+                numero: document.getElementById('numeroCasa').value,
+                complemento: document.getElementById('complemento').value,
+                email: document.getElementById('email').value
+            };
+            
+            // Aqui você pode processar os dados (enviar para servidor, salvar localmente, etc.)
+            console.log('Dados do cliente:', formData);
+            alert('Cliente cadastrado com sucesso!');
+            
+            // Limpa o formulário
+            this.reset();
+            
+            // Remove readonly dos campos de endereço para o próximo cadastro
+            document.getElementById('nomeRua').setAttribute('readonly', '');
+            document.getElementById('bairro').setAttribute('readonly', '');
+            document.getElementById('cidade').setAttribute('readonly', '');
+        });
     </script>
     <div class="btn-cadastro"><a class="voltar" href="index.html">Voltar</a></div>
 </body>>

@@ -24,6 +24,9 @@ body {
     height: 80px;
 }
 
+.logo-left img{
+    border-radius: 50%;
+}
 .logo-left img, .logo-right img {
     max-width: 140px;
     max-height: 120px;
